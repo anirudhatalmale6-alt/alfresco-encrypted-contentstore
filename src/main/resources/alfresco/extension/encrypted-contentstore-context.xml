@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+    <!--
+        Iurit Encrypted Content Store
+        ==============================
+        Wraps the default fileContentStore with an encrypting decorator.
+
+        Configuration in alfresco-global.properties:
+            iurit.encryption.keystore.path=/path/to/encryption-keystore.jceks
+            iurit.encryption.keystore.password=<keystore_password>
+            iurit.encryption.key.alias=iurit-content-key
+            iurit.encryption.key.password=<key_password>
+    -->
+
+    <!-- AES Encryption Service -->
+    <bean id="iuritEncryptionService"
+          class="org.iurit.alfresco.encryption.AESEncryptionService"
+          init-method="init">
+        <property name="keystorePath" value="${iurit.encryption.keystore.path}" />
+        <property name="keystorePassword" value="${iurit.encryption.keystore.password}" />
+        <property name="keyAlias" value="${iurit.encryption.key.alias}" />
+        <property name="keyPassword" value="${iurit.encryption.key.password}" />
+    </bean>
+
+    <!--
+        The original fileContentStore is created by Alfresco's default Spring config.
+        We rename it and wrap it with our encrypting decorator.
+    -->
+
+    <!-- Rename the original fileContentStore to rawFileContentStore -->
+    <bean id="rawFileContentStore"
+          class="org.alfresco.repo.content.filestore.FileContentStore"
+          depends-on="dictionaryBootstrap">
+        <constructor-arg>
+            <bean class="org.alfresco.util.ApplicationContextHelper" factory-method="getApplicationContext"/>
+        </constructor-arg>
+        <constructor-arg value="${dir.contentstore}" />
+    </bean>
+
+    <!-- Override fileContentStore with our encrypting wrapper -->
+    <bean id="fileContentStore"
+          class="org.iurit.alfresco.encryption.EncryptedContentStore">
+        <property name="delegate" ref="rawFileContentStore" />
+        <property name="encryptionService" ref="iuritEncryptionService" />
+    </bean>
+
+    <!-- Migration Action (for encrypting existing content node-by-node) -->
+    <bean id="encrypt-content"
+          class="org.iurit.alfresco.encryption.ContentMigrationAction"
+          parent="action-executer">
+        <property name="contentService" ref="ContentService" />
+        <property name="encryptionService" ref="iuritEncryptionService" />
+    </bean>
+
+    <!-- Migration Web Script -->
+    <bean id="webscript.org.iurit.alfresco.encryption.migrate.get"
+          class="org.iurit.alfresco.encryption.ContentMigrationWebScript"
+          parent="webscript">
+        <property name="searchService" ref="SearchService" />
+        <property name="contentService" ref="ContentService" />
+        <property name="encryptionService" ref="iuritEncryptionService" />
+    </bean>
+
+</beans>

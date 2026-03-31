@@ -1,0 +1,8 @@
+<webscript>
+    <shortname>Encrypt Content Migration</shortname>
+    <description>Migrates existing unencrypted content to encrypted format</description>
+    <url>/api/encryption/migrate?batchSize={batchSize?}&amp;dryRun={dryRun?}</url>
+    <format default="json"/>
+    <authentication>admin</authentication>
+    <transaction>required</transaction>
+</webscript>

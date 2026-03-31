@@ -1,0 +1,6 @@
+org/iurit/alfresco/encryption/AESEncryptionService.class
+org/iurit/alfresco/encryption/ContentMigrationWebScript.class
+org/iurit/alfresco/encryption/ContentMigrationAction.class
+org/iurit/alfresco/encryption/EncryptedContentWriter.class
+org/iurit/alfresco/encryption/EncryptedContentStore.class
+org/iurit/alfresco/encryption/EncryptedContentReader.class
