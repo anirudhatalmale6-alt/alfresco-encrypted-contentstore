@@ -1,7 +1,5 @@
 package org.iurit.alfresco.encryption;
 
-import java.util.Map;
-
 import org.alfresco.repo.content.ContentContext;
 import org.alfresco.repo.content.ContentStore;
 import org.alfresco.service.cmr.repository.ContentReader;
@@ -10,7 +8,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * An encrypting content store that wraps a standard ContentStore (typically FileContentStore).
+ * An encrypting content store that wraps any ContentStore delegate
+ * (typically TenantRoutingFileContentStore in Alfresco 6.1).
  * Uses composition: delegates all operations to the wrapped store, intercepting
  * getWriter/getReader to add encryption/decryption.
  *
@@ -80,6 +79,7 @@ public class EncryptedContentStore implements ContentStore {
     // Spring setters
     public void setDelegate(ContentStore delegate) {
         this.delegate = delegate;
+        LOG.info("EncryptedContentStore initialized with delegate: " + delegate.getClass().getName());
     }
 
     public void setEncryptionService(AESEncryptionService encryptionService) {

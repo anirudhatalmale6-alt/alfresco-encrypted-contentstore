@@ -12,10 +12,11 @@
     <description>AES-256 encryption at rest for Alfresco Community 6.1 content store</description>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <alfresco.version>6.1</alfresco.version>
+        <alfresco.repo.version>7.22</alfresco.repo.version>
+        <alfresco.core.version>7.4</alfresco.core.version>
     </properties>
 
     <repositories>
@@ -29,13 +30,13 @@
         <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-repository</artifactId>
-            <version>${alfresco.version}</version>
+            <version>${alfresco.repo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-core</artifactId>
-            <version>${alfresco.version}</version>
+            <version>${alfresco.core.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -48,6 +49,12 @@
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
             <version>1.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.alfresco.surf</groupId>
+            <artifactId>spring-webscripts</artifactId>
+            <version>6.20</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

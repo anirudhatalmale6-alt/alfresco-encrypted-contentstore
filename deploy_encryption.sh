@@ -149,8 +149,38 @@ deploy() {
     cp "$JAR_FILE" "$LIB_DIR/"
     info "  JAR deployed."
 
-    # Step 2: Add encryption properties to alfresco-global.properties
-    info "Step 2: Configuring alfresco-global.properties..."
+    # Step 2: Create ContentStore subsystem override
+    info "Step 2: Creating ContentStore subsystem override..."
+    SUBSYSTEM_DIR="$SHARED_CLASSES/alfresco/extension/subsystems/ContentStore/unencrypted/unencrypted"
+    mkdir -p "$SUBSYSTEM_DIR"
+
+    cat > "$SUBSYSTEM_DIR/encrypted-override-context.xml" << 'CTXEOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- Keep the original store as rawFileContentStore -->
+    <bean id="rawFileContentStore" class="org.alfresco.repo.tenant.TenantRoutingFileContentStore"
+          parent="baseTenantRoutingContentStore">
+        <property name="rootLocation" value="${dir.contentstore}" />
+        <property name="contentLimitProvider" ref="defaultContentLimitProvider" />
+        <property name="fileContentUrlProvider" ref="defaultFileContentUrlProvider"/>
+    </bean>
+
+    <!-- Override fileContentStore with encrypting wrapper -->
+    <bean id="fileContentStore"
+          class="org.iurit.alfresco.encryption.EncryptedContentStore">
+        <property name="delegate" ref="rawFileContentStore" />
+        <property name="encryptionService" ref="iuritEncryptionService" />
+    </bean>
+
+</beans>
+CTXEOF
+    info "  Subsystem override created at: $SUBSYSTEM_DIR/encrypted-override-context.xml"
+
+    # Step 3: Add encryption properties to alfresco-global.properties
+    info "Step 3: Configuring alfresco-global.properties..."
 
     if grep -q "iurit.encryption" "$GLOBAL_PROPS" 2>/dev/null; then
         warn "  Encryption properties already exist in alfresco-global.properties"
@@ -258,6 +288,13 @@ uninstall() {
     if [ -f "$LIB_DIR/$JAR_FILE" ]; then
         rm "$LIB_DIR/$JAR_FILE"
         info "Removed JAR from $LIB_DIR"
+    fi
+
+    # Remove subsystem override
+    SUBSYSTEM_CTX="$SHARED_CLASSES/alfresco/extension/subsystems/ContentStore/unencrypted/unencrypted/encrypted-override-context.xml"
+    if [ -f "$SUBSYSTEM_CTX" ]; then
+        rm "$SUBSYSTEM_CTX"
+        info "Removed subsystem override context"
     fi
 
     # Remove properties (comment them out)
